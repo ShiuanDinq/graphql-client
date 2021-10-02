@@ -1,7 +1,7 @@
 import '../styles/App.css';
 import {gql, useQuery} from '@apollo/client';
 import Posts from './Posts';
-
+import 'bulma/css/bulma.min.css';
 const ALL_POSTS = gql`
   query{
     posts{
@@ -19,7 +19,7 @@ const App = () => {
   }
 
   return (
-    <div>
+    <div className="has-background-primary">
       <Posts posts={result.data.posts}/>
     </div>
   )
