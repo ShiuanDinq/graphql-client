@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import SearchBar from './Searchbar';
 import { useParams } from 'react-router'
 import { Link } from 'react-router-dom';
+import Loader from './Loader';
 
 const Post = () => {
   const params = useParams()
@@ -62,7 +63,7 @@ const Post = () => {
   }
 
 
-  if (loading) return '';
+  if (loading) return <Loader isLoading={true}/>;
   if (error) return `Error! ${error.message}`;
   if (post) {
     const comments = post.comments.map((comment, index) =>  
