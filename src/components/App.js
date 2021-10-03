@@ -1,29 +1,35 @@
 import '../styles/App.css';
-import {gql, useQuery} from '@apollo/client';
-import Posts from './Posts';
+import Posts from './Posts'
+import Post from './Post';
+import {useEffect} from 'react';
+
 import 'bulma/css/bulma.min.css';
-const ALL_POSTS = gql`
-  query{
-    posts{
-      id
-      title
-      body
-    }
-  }
-`
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+
+
+
+
+
 const App = () => {
-  const result = useQuery(ALL_POSTS)
+ return(
+  <Switch>
+    <Route exact path="/" component={Posts} />
+    <Route exact path="/post/:id" component={Post} />
+  </Switch>
 
-  if(result.loading) {
-    return <div>Loading...</div>
-  }
-
-  return (
-    <div className="has-background-primary">
-      <Posts posts={result.data.posts}/>
-    </div>
-  )
+ )
 
 }
 
+
+
 export default App;
+
+
+
+

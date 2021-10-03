@@ -1,104 +1,126 @@
-import {gql, useLazyQuery} from '@apollo/client';
-import { useState, useEffect } from 'react';
-import SearchBar from './Searchbar';
-
-
-const FIND_POST = gql`
-  query findPostById($idToSearch: ID!, $email: String, $name: String, $body: String) {
-    post(id: $idToSearch) {
-      id
-      title
-      body 
-      comments(email: $email, name: $name, body: $body){
-        name
-        body
-        email
+import {gql, useQuery} from '@apollo/client';
+import {useEffect, useState} from 'react'
+import PostItems from './PostItems';
+import ScrollButton from './ScrollButton'
+const ALL_POSTS = gql`
+  query posts($first: Int, $after: String) {
+    posts(first: $first, after: $after) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      edges {
+        cursor
+        node {
+          id
+          title
+          body
+        }
       }
     }
   }
-`
+  `
 
-const Posts = ({ posts }) => {
-  const [getPost, result] = useLazyQuery(FIND_POST) 
-  const [post, setPost] = useState(null)
-  const [name, setName] = useState(null)
-  const [body, setBody] = useState(null)
-  const [email, setEmail] = useState(null)
+const Posts = () => {
+  const first = 6
+  const delay = true;
 
-  const showPost = (id) => {
 
-      getPost({ variables: { idToSearch: id, name: name, body: body, email: email} })
 
-  }
+  const { error, data, fetchMore, networkStatus } = useQuery(ALL_POSTS, {
+    variables: { first, delay},
+    notifyOnNetworkStatusChange: true,
+  })
+
+  const handleScroll = async () => {
+
+    const bottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight
+
+    if(hasNextPage && bottom ) { 
+
+      handleFetch()
+
+
+
+    }
+  };
 
   useEffect(() => {
-    if (result.data) {
-      setPost(result.data.post)
-    }
-  }, [result])
+    window.addEventListener('scroll', handleScroll, {
+      passive: true
+    });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [data]);
 
 
 
-  const handleSearch = (id) => {
-      getPost({ variables: { idToSearch: id, name: name, body: body, email: email} })
+  const handleFetch = async () => {
+    fetchMore({
+      variables: {
+        first,
+        after: data.posts.pageInfo.endCursor,
+        delay,
+      },
+    })
+
+
   }
 
-  const handleName = (e) => {
-    setName(e.target.value)
-  }
-
-  const handleBody = (e) => {
-    setBody(e.target.value)
-  }
-
-  const handleEmail = (e) => {
-    setEmail(e.target.value)
-  }
-
-  const handleClose = () => {
-    setPost(null)
-    setName(null)
-    setBody(null)
-    setEmail(null)
+  if(error) {
+    console.log(error.message);
+    return <div>An error occurred</div>
   }
 
 
-  if (post) {
-
-    const comments = post.comments.map(comment =>  
-      <div class="has-background-warning">
-        <p>{comment.name}</p>
-        <p>{comment.body}</p>
-        <p>{comment.email}</p>
-      </div>)
-    
-    return(
-      <div>
-        <h2>{post.title}</h2>
-        <p>{post.body}</p>
-          {comments}
-        <button onClick={() => handleClose()}>close</button>
-        <button onClick={() => handleSearch(post.id)}>Search</button>
-        <SearchBar handleName={handleName} handleBody={handleBody} handleEmail={handleEmail}/>
-      </div>
-    )
+  if(networkStatus == 1) {
+    return <div>Loading...</div>
   }
+
+  const hasNextPage = data.posts.pageInfo.hasNextPage;
+  const isRefetching = networkStatus === 3;
+
+
 
   return (
-    <div>
-      <h2>Posts</h2>
-      {posts.map(p =>
-        <div className="has-background-danger" style={{margin:"1rem"}}key={p.id} onClick={() => showPost(p.id)} >
-          <p class="has-text-warning">
-            {p.title} 
-          </p>
-          <p class="has-text-white">
-            {p.body}
-          </p>         
-        </div>  
-      )}
+    <div className=" columns is-centered posts-container" >
+
+        <div class="column is-two-thirds " >
+          <header className="is-size-2 has-text-weight-bold">Message Board</header>
+          <PostItems posts={data.posts}/>
+          
+          {/* {hasNextPage && (
+            <div className="more_button">
+              <button
+                id="buttonLoadMore"
+                disabled={isRefetching}
+                loading={isRefetching}
+                onClick={() =>
+                  fetchMore({
+                    variables: {
+                      first,
+                      after: data.posts.pageInfo.endCursor,
+                      delay,
+                    },
+                  })
+
+                }
+              >
+              load more
+              </button>
+            </div>
+          )} */}
+        </div>
+        <ScrollButton/>
+
     </div>
   )
+
 }
+
+
+
 
 export default Posts
