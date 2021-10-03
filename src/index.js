@@ -6,9 +6,6 @@ import {ApolloClient, HttpLink, InMemoryCache, ApolloProvider} from '@apollo/cli
 import { relayStylePagination } from "@apollo/client/utilities"
 import {
   BrowserRouter,
-  Switch,
-  Route,
-  Link
 } from "react-router-dom";
 import 'font-awesome/css/font-awesome.min.css';
 
