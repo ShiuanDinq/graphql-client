@@ -24,7 +24,7 @@ const client = new ApolloClient({
     console.log("networkError", networkError)
   },
   link: new HttpLink({
-    uri: 'http://localhost:4000',
+    uri: 'https://mw-graphql-server.herokuapp.com/',
   })
 })
 
